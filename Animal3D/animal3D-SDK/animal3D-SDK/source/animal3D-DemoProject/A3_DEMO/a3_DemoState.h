@@ -1,3 +1,28 @@
+/* This file was modified by Brian Baron with permission from author.
+ * 
+ * I know we didn't create this file, but here is our info anyways
+ *
+ * Note: Although paired together, Duncan and I each have our own implementations 
+ * because we forgot that you could share a repo for team projects (Oops).
+ *
+ * My repo got kinda fucked up, so I made the one you're currently using. 
+ * I'll include links to both repos.
+ *
+ * Old Repo:		https://github.com/tgpx31/baron-egp-480/tree/lab1	(on branch lab1)
+ * Current Repo:	https://github.com/tgpx31/egp-480-rescue/tree/lab1	(on branch lab1)
+ *
+ * Brian Baron		0974390
+ * Duncan Carroll	0000000
+ *
+ *********************************************************
+ * EGP 480 01	|	Lab1	|	2017/09/05	(YYYY/MM/DD)
+ *********************************************************
+ *	 We certify that this work is entirely our own. The assessor of this project may reproduce this project
+ *	 and provide copies to other academic staff, and/or communicate a copy of this project to a plagiarism-checking service,
+ *	 which may retain a copy of the project on its database
+ */
+
+
 /*
 Copyright 2011-2017 Daniel S. Buckstein
 
@@ -128,16 +153,16 @@ struct a3_DemoState
 	//	- earth tilt
 	//	- earth orbit
 	//	- earth orbit distance
-	unsigned int teapotRot;
-	unsigned int earthRot;
+	p3real teapotRot;
+	p3real earthRot;
 	p3real earthTilt;
 	p3real earthOrbit;
 	p3real earthCurrOrbit;
 	unsigned int earthDistance;
 
-	float capsuleRot1;
-	float capsuleRot2;
-	int capsuleSpeed;
+	p3real capsuleRot1;
+	p3real capsuleRot2;
+	p3real capsuleSpeed;
 
 	//---------------------------------------------------------------------
 	// objects that have known or fixed instance count in the whole demo
