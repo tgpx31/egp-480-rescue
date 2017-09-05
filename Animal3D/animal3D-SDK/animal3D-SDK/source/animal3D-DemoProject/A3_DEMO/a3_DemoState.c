@@ -12,7 +12,7 @@
 * Current Repo:	https://github.com/tgpx31/egp-480-rescue/tree/lab1	(on branch lab1)
 *
 * Brian Baron		0974390
-* Duncan Carroll	0000000
+* Duncan Carroll	0894235
 *
 *********************************************************
 * EGP 480 01	|	Lab1	|	2017/09/05	(YYYY/MM/DD)
