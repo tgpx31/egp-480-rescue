@@ -1,30 +1,30 @@
 /*
-	Copyright 2011-2017 Daniel S. Buckstein
+Copyright 2011-2017 Daniel S. Buckstein
 
-	Licensed under the Apache License, Version 2.0 (the "License");
-	you may not use this file except in compliance with the License.
-	You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-		http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
-	Unless required by applicable law or agreed to in writing, software
-	distributed under the License is distributed on an "AS IS" BASIS,
-	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	See the License for the specific language governing permissions and
-	limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 /*
-	animal3D SDK: Minimal 3D Animation Framework
-	By Daniel S. Buckstein
-	
-	a3_DemoState.c/.cpp
-	Demo state function implementations.
+animal3D SDK: Minimal 3D Animation Framework
+By Daniel S. Buckstein
 
-	********************************************
-	*** THIS IS YOUR DEMO'S MAIN SOURCE FILE ***
-	*** Implement your demo logic here.      ***
-	********************************************
+a3_DemoState.c/.cpp
+Demo state function implementations.
+
+********************************************
+*** THIS IS YOUR DEMO'S MAIN SOURCE FILE ***
+*** Implement your demo logic here.      ***
+********************************************
 */
 
 
@@ -118,6 +118,8 @@ void a3demo_loadTextures(a3_DemoState *demoState)
 // utility to load geometry
 void a3demo_loadGeometry(a3_DemoState *demoState)
 {
+	demoState->streaming = 0;
+
 	// static model transformations
 	static const p3mat4 downscaleTenth = {
 		+0.1f, 0.0f, 0.0f, 0.0f,
@@ -141,10 +143,10 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 
 	// geometry data
 	a3_GeometryData sceneShapesData[2] = { 0 };
-	a3_GeometryData proceduralShapesData[1] = { 0 };
+	a3_GeometryData proceduralShapesData[2] = { 0 };
 	a3_GeometryData loadedModelsData[1] = { 0 };
 	const unsigned int sceneShapesCount = 2;
-	const unsigned int proceduralShapesCount = 1;
+	const unsigned int proceduralShapesCount = 2;
 	const unsigned int loadedModelsCount = 1;
 
 	// common index format
@@ -177,9 +179,9 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 	{
 		// create new data
 		a3_ProceduralGeometryDescriptor sceneShapes[2] = { 0 };
-		a3_ProceduralGeometryDescriptor proceduralShapes[1] = { 0 };
+		a3_ProceduralGeometryDescriptor proceduralShapes[2] = { 0 };	// increment to accomodate new obj
 
-		// static scene procedural objects
+																		// static scene procedural objects
 		a3proceduralCreateDescriptorAxes(sceneShapes + 0, a3geomFlag_wireframe, 0.0f, 1);
 		a3proceduralCreateDescriptorPlane(sceneShapes + 1, a3geomFlag_wireframe, a3geomAxis_default, 32.0f, 32.0f, 32, 32);
 		for (i = 0; i < sceneShapesCount; ++i)
@@ -190,6 +192,7 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 
 		// procedural
 		a3proceduralCreateDescriptorSphere(proceduralShapes + 0, a3geomFlag_tangents, a3geomAxis_default, 1.0f, 24, 16);
+		a3proceduralCreateDescriptorCapsule(proceduralShapes + 1, a3geomFlag_tangents, a3geomAxis_default, 1.0f, 2.0f, 24, 16, 16);	// for capsule
 		for (i = 0; i < proceduralShapesCount; ++i)
 		{
 			a3proceduralGenerateGeometryData(proceduralShapesData + i, proceduralShapes + i);
@@ -266,6 +269,11 @@ void a3demo_loadGeometry(a3_DemoState *demoState)
 	a3geometryGenerateVertexArray(vao, proceduralShapesData + 0, vbo_ibo, sharedVertexStorage);
 	currentDrawable = demoState->draw_sphere;
 	sharedVertexStorage += a3geometryGenerateDrawable(currentDrawable, proceduralShapesData + 0, vao, vbo_ibo, sceneCommonIndexFormat, 0, 0);
+
+	// capsule setup
+	currentDrawable = demoState->draw_capsule;
+	sharedVertexStorage += a3geometryGenerateDrawable(currentDrawable, proceduralShapesData + 1, vao, vbo_ibo, sceneCommonIndexFormat, 0, 0);
+
 	currentDrawable = demoState->draw_teapot;
 	sharedVertexStorage += a3geometryGenerateDrawable(currentDrawable, loadedModelsData + 0, vao, vbo_ibo, sceneCommonIndexFormat, 0, 0);
 
@@ -549,10 +557,29 @@ void a3demo_initScene(a3_DemoState *demoState)
 		demoState->lightObject->position.z = +cameraAxisPos;
 	}
 
+	// make objects move: 
+	//	- teapot rotates counter-clockwise about axis
+	//	- earth has a constant tilt of 23.5 degrees
+	//	- earth rotates counter-clockwise about axis
+	//	- earth orbits counter-clockwise about teapot's position
+	//	- yes, the sun is a teapot
+	demoState->teapotRot = 100;
+	demoState->earthRot = 150;
+	demoState->earthTilt = 23.5f;
+	demoState->earthOrbit = 50;
+	demoState->earthCurrOrbit = 0;
+	demoState->earthDistance = 7;
+
 
 	// other scene objects
 	demoState->earthObject->position.x = 8.0f;
 	demoState->teapotObject->position.x = 0.0f;
+
+	// capsule animation params
+	demoState->capsuleObject->position.x = 8.0f;
+	demoState->capsuleRot1 = .75f;
+	demoState->capsuleRot2 = .25f;
+	demoState->capsuleSpeed = 5;
 }
 
 
@@ -636,14 +663,40 @@ void a3demo_update(a3_DemoState *demoState, double dt)
 	// ****
 	// make objects move: 
 	//	- teapot rotates counter-clockwise about axis
+	int teapotRot = demoState->teapotObject->euler.y += demoState->teapotRot * (float)dt;
+	if (teapotRot >= 360)
+		teapotRot = 0;
+
+	demoState->teapotObject->euler.y = teapotRot;
+
 	//	- earth has a constant tilt of 23.5 degrees
+	demoState->earthObject->euler.y = demoState->earthTilt;
+
 	//	- earth rotates counter-clockwise about axis
+	int earthRot = demoState->earthObject->euler.z += demoState->earthRot * (float)dt;
+	if (earthRot >= 360)
+		earthRot = 0;
+	demoState->earthObject->euler.z = earthRot;
+
 	//	- earth orbits counter-clockwise about teapot's position
 	//	- yes, the sun is a teapot
+	p3real orbitAngle = (teapotRot * demoState->earthOrbit * (float)dt);
+	if (orbitAngle > 360)
+		orbitAngle -= 360;
 
+	demoState->earthCurrOrbit += demoState->earthOrbit * (float)dt;
+	if (demoState->earthCurrOrbit >= 360)
+		demoState->earthCurrOrbit -= 360;
+
+	demoState->earthObject->position.x = p3cosd(demoState->earthCurrOrbit) * demoState->earthDistance;
+	demoState->earthObject->position.y = p3sind(demoState->earthCurrOrbit) * demoState->earthDistance;
+
+	// animate capsule
+	demoState->capsuleObject->position.z = p3tand(demoState->earthCurrOrbit);
+	a3demo_rotateSceneObject(demoState->capsuleObject, demoState->capsuleSpeed, demoState->capsuleRot1, demoState->capsuleRot2, 0);
 
 	// controls
-	
+
 	// move and rotate camera
 	a3demo_moveSceneObject(demoState->camera->sceneObject, (float)dt * demoState->camera->ctrlMoveSpeed,
 		(p3real)a3keyboardGetDifference(demoState->keyboard, 'D', 'A'),
@@ -740,7 +793,7 @@ void a3demo_render(a3_DemoState *demoState)
 	// draw teapot & earth
 	currentDemoProgram = demoState->prog_drawPhong_obj;
 	a3shaderProgramActivate(currentDemoProgram->program);
-	
+
 	currentDrawable = demoState->draw_teapot;
 	currentSceneObject = demoState->teapotObject;
 	if (!useVerticalY)	// teapot's axis is Y
@@ -785,6 +838,30 @@ void a3demo_render(a3_DemoState *demoState)
 	a3textureActivate(demoState->tex_earth_sm, a3tex_unit01);
 	a3vertexActivateAndRenderDrawable(currentDrawable);
 
+	// Draw the capsule
+	{
+		currentDrawable = demoState->draw_capsule;
+		currentSceneObject = demoState->capsuleObject;
+		if (useVerticalY)	// capsule's axis is Z
+		{
+			p3real4x4ProductTransform(modelMat.m, convertZ2Y.m, currentSceneObject->modelMat.m);
+			p3real4x4TransformInverseIgnoreScale(modelMatInv.m, modelMat.m);
+		}
+		else
+		{
+			modelMat = currentSceneObject->modelMat;
+			modelMatInv = currentSceneObject->modelMatInv;
+		}
+		p3real4x4Product(modelViewProjectionMat.m, demoState->camera->viewProjectionMat.m, modelMat.m);
+		p3real4TransformProduct(lightPos_obj.v, modelMatInv.m, demoState->lightObject->modelMat.v3.v);
+		p3real4TransformProduct(eyePos_obj.v, modelMatInv.m, demoState->cameraObject->modelMat.v3.v);
+		a3shaderUniformSendFloatMat(a3unif_mat4, 0, currentDemoProgram->uMVP, 1, modelViewProjectionMat.mm);
+		a3shaderUniformSendFloat(a3unif_vec4, currentDemoProgram->uLightPos_obj, 1, lightPos_obj.v);
+		a3shaderUniformSendFloat(a3unif_vec4, currentDemoProgram->uEyePos_obj, 1, eyePos_obj.v);
+		a3textureActivate(demoState->tex_earth_dm, a3tex_unit00);
+		a3textureActivate(demoState->tex_earth_sm, a3tex_unit01);
+		a3vertexActivateAndRenderDrawable(currentDrawable);
+	}
 
 	// draw grid aligned to world
 	currentDemoProgram = demoState->prog_drawColorUnif;
