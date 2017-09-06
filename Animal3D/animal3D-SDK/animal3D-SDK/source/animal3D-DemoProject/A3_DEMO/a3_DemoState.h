@@ -159,7 +159,7 @@ extern "C"
 		//	- add anything else required for waypoint controller
 		//		-> it's a keyframe controller; time is important!
 		//		-> what else? looping behaviors?
-
+		float segmentTime;
 
 		// ****TO-DO: 
 		//	- add sample table(s) for speed control
